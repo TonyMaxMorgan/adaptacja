@@ -1,19 +1,36 @@
-#include <iostream>
-#include <stdlib.h>
-#include <list>
+/* Authors: Maciej Kazana, Anna Ryszka
+ * 
+ * Function: get_impulse_response
+ * 
+ * Input parameters:
+ *		list<double> _t - list of doubles containing time data (with constant sample time)
+ *		list<double> _u - list of doubles containing control data
+ *		list<double> _y - list of doubles containing output data
+ *
+ * Output parameters:
+ *		list<double> _g - list of doubles containing computed impulse response
+ *
+ * Description:
+ *		Function calculates impulse response from given control and output data
+ *		on time window [0,T] with constant sample time
+ */
+
 #include <cstdlib>
+#include <iostream>
+#include <list>
 #include "get_impulse_response.h"
 
 using namespace std;
 
-list<double> get_impulse_response(list<double> _u, list<double> _y)
+list<double> get_impulse_response(list<double> _t, list<double> _u, list<double> _y)
 {
+	double Ts;						// sample time
 	int s = _u.size();				// size for creating dynamic tables
 
-	list<double> _g;				// list to return g table
-	double * u = new double[s];		// control data
-	double * y = new double[s];		// output data
-	double * g = new double[s];		// impulse response to compute
+	list<double> _g;				// list to return g table (computed impulse response)
+	double * u = new double[s];		// table for control data
+	double * y = new double[s];		// table for output data
+	double * g = new double[s];		// table for impulse response to compute
 	
 	/* transfer control data to table */
 	int j=0;
@@ -31,12 +48,21 @@ list<double> get_impulse_response(list<double> _u, list<double> _y)
 		j++;
 	}
 
+	/* compute sample time */
+	double temp1, temp2;
+	list<double>::iterator it=_t.begin();
+	temp1 = *it;
+	it++;
+	temp2 = *it;
+	Ts = temp2 - temp1;
+	cout<<"sample time "<<Ts<<endl;
+
 	/* compute impulse response */
 	double u_0 = u[0];
 	
 	g[0]=y[0];
 	g[1]=y[1]/u_0;
-	for(int k=2; k<501; k++)
+	for(int k=2; k<s; k++)
 	{
 		double sum = 0;
 		for(int i=1; i<=(k-1); i++)
@@ -44,6 +70,12 @@ list<double> get_impulse_response(list<double> _u, list<double> _y)
 			sum += u[i]*g[k-i];
 		}
 			g[k]=(y[k]-sum)/u_0;
+	}
+
+	/* divide computed impulse response by sample time */
+	for(int i=0; i<s; i++)
+	{
+		g[i] = g[i]/Ts;
 	}
 
 	/* transfer impulse response to list */

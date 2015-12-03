@@ -1,3 +1,20 @@
+/* Authors: Maciej Kazana, Anna Ryszka
+ * 
+ * Function: get_impulse_response
+ * 
+ * Input parameters:
+ *		list<double> _t - list of doubles containing time data (with constant sample time)
+ *		list<double> _u - list of doubles containing control data
+ *		list<double> _y - list of doubles containing output data
+ *
+ * Output parameters:
+ *		list<double> _g - list of doubles containing computed impulse response
+ *
+ * Description:
+ *		Function calculates impulse response from given control and output data
+ *		on time window [0,T] with constant sample time
+ */
+
 #ifndef GET_IMPULSE_RESPONSE_H
 #define GET_IMPULSE_RESPONSE_H
 
@@ -5,6 +22,6 @@
 #include <list>
 #include <cstdlib>
 
-std::list<double> get_impulse_response(std::list<double> _u, std::list<double> _y);
+list<double> get_impulse_response(list<double> _t, list<double> _u, list<double> _y);
 
 #endif
