@@ -3,7 +3,6 @@
  * Function: get_impulse_response
  * 
  * Input parameters:
- *		list<double> _t - list of doubles containing time data (with constant sample time)
  *		list<double> _u - list of doubles containing control data
  *		list<double> _y - list of doubles containing output data
  *
@@ -18,10 +17,11 @@
 #ifndef GET_IMPULSE_RESPONSE_H
 #define GET_IMPULSE_RESPONSE_H
 
-#include <stdlib.h>
 #include <list>
 #include <cstdlib>
 
-list<double> get_impulse_response(list<double> _t, list<double> _u, list<double> _y);
+using namespace std;
+
+list<double> get_impulse_response(list<double> _u, list<double> _y);
 
 #endif

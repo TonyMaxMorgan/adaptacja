@@ -9,88 +9,58 @@
 #include <time.h>
 
 #include "get_impulse_response.h"
+#include "get_step_response.h"
 
 using namespace std;
 
+double get_sample_time(list<double> _t);
+
+/* !!! Change desired input and output directories and filenames !!! */
+	string input_location = "data.txt";
+	string output_location = "response.txt";
+/* !!! Change desired input and output directories and filenames !!! */
 
 
 int main(int argc, char* argv[])
 {
 	list<double> impulse;
-	list<double> t;
+	list<double> step;
+	list<double> time;
 	list<double> u;
 	list<double> y;
-	std::fstream plik_data;
-	std::fstream plik_u;
-	std::fstream plik_y;
-	char line[256];
+	std::fstream input_data;
 
-	/* Otwieranie pliku z danymi t u y */
-	plik_data.open( "data.txt", std::ios::in | std::ios::out );
-	if( plik_data.good() == true )
+	/* transfer t u y to corresponding lists*/
+	input_data.open(input_location, std::ios::in | std::ios::out );
+	if( input_data.good() == true )
 	{
 		std::cout << "Uzyskano dostep do pliku!" << endl;
 		
-		while(!plik_data.eof())
+		while(!input_data.eof())
 		  {
 			  double temp_t=END_FLAG, temp_u=END_FLAG, temp_y=END_FLAG;  
 
-			  plik_data >> temp_t >> temp_u >> temp_y;
+			  input_data >> temp_t >> temp_u >> temp_y;
 			  if(temp_t!=END_FLAG)
 			  {
-				t.push_back(temp_t);
+				time.push_back(temp_t);
 				u.push_back(temp_u);
 				y.push_back(temp_y);
 			  }
 		  }
-		  cout<<"Wczytano wektory z pliku data"<<endl;
-		  cout<< t.size() << endl << u.size() << endl << y.size() <<endl;
+		  cout<<"Wczytano wektory z pliku "<<input_location<<endl;
 	} 
 	else std::cout << "Dostep do pliku zostal zabroniony!" << endl;
-	plik_data.close();
+	input_data.close();
 
-
-	/***** dwa pliki *****/
-	if (false)
-	{
-		/* Otwieranie pliku ze sterowaniem u */
-		plik_u.open( "u.txt", std::ios::in | std::ios::out );
-		if( plik_u.good() == true )
-		{
-			std::cout << "Uzyskano dostep do pliku!" << endl;
-			while(!plik_u.eof())
-			{
-				plik_u.getline(line,256);
-				u.push_back(atof(line));
-			}
-			cout<<"Wczytano wektor sterowan"<<endl;
-		} 
-		else std::cout << "Dostep do pliku zostal zabroniony!" << endl;
-		plik_u.close();
-
-		/* Otwieranie pliku z wyjsciem y */
-		plik_y.open( "y.txt", std::ios::in | std::ios::out );
-		if( plik_y.good() == true )
-		{
-			std::cout << "Uzyskano dostep do pliku!" << endl;
-			while(!plik_y.eof())
-			{
-				plik_y.getline(line,256);
-				y.push_back(atof(line));
-			}
-			cout<<"Wczytano wektor wyjscia"<<endl;
-		} 
-		else std::cout << "Dostep do pliku zostal zabroniony!" << endl;
-		plik_y.close(); 
-	}
-	/***** dwa pliki KONIEC *****/
 	
-	/* obliczenie chatakterystyki impulsowej*/
-	impulse = get_impulse_response(t,u,y);
+	/* compute impulse response*/
+	impulse = get_impulse_response(u,y);
 
-	cout<<"impulse size: "<<impulse.size()<<endl;
+	/* compute step response */
+	step = get_step_response(impulse);
 
-	/*zapisywanie do pliku*/
+	/* transfer impulse response from list to table */
 	double * g = new double[impulse.size()];
 	int gj=0;
 	for(list<double>::iterator it=impulse.begin(); it!=impulse.end(); ++it)
@@ -99,22 +69,56 @@ int main(int argc, char* argv[])
 		gj++;
 	}
 
+	/* transfer step response from list to table */
+	double * h = new double[step.size()];
+	int hj=0;
+	for(list<double>::iterator it=step.begin(); it!=step.end(); ++it)
+	{
+		h[hj]=*it; 
+		hj++;
+	}
 
-	ofstream plik_g ("g.txt", ios_base::in | ios_base::trunc);
+	/* transfer time from list to table */
+	double * t = new double[time.size()];
+	int tj=0;
+	for(list<double>::iterator it=time.begin(); it!=time.end(); ++it)
+	{
+		t[tj]=*it; 
+		tj++;
+	}
+
+	/* compute sample time */
+	double sample_time;
+	sample_time = get_sample_time(time);
+
+	/* divide computed impulse response by sample time*/
+	for(int i=0; i<impulse.size(); i++)
+	{
+		g[i] = g[i]/sample_time;
+	}
+
+	/* save time, impulse reponse and step response to file */
+	ofstream output_data (output_location, ios_base::in | ios_base::trunc);
  
-	 if(!plik_g)
+	 if(!output_data)
 		cout << "Nie mo¿na otworzyæ pliku!" << endl;
 	 else
 	 {
-		for (int i=0; i<impulse.size(); i++)
+		for (int i=0; i<time.size(); i++)
 		{
-			plik_g << g[i] << endl;
+			output_data << t[i] << ", " << g[i] << ", " << h[i] << endl;
 		}
-		cout << "Dane zapisano pomyslnie!" << endl;
+		cout << "Dane zapisano pomyslnie do pliku: "<< output_location << endl;
 	 }
-		plik_g.close();
+		output_data.close();
+	 
+	 /* free dynamic allocated memory */
+	 delete [] g;
+	 delete [] h;
+	 delete [] t;	
 
-		delete [] g;
+	  
+
 	
 	
 	getchar();
@@ -124,6 +128,17 @@ int main(int argc, char* argv[])
 }
 
 /* Program functions */
+double get_sample_time(list<double> _t)
+{
+	double Ts;				// sample time
+	double temp1, temp2;	// temporary variables for computation
 
+	list<double>::iterator it=_t.begin();
+	temp1 = *it;
+	it++;
+	temp2 = *it;
+	Ts = temp2 - temp1;
 
+	return Ts;
+}
 /* ---------------- */

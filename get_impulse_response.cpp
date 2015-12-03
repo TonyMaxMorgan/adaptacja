@@ -3,7 +3,6 @@
  * Function: get_impulse_response
  * 
  * Input parameters:
- *		list<double> _t - list of doubles containing time data (with constant sample time)
  *		list<double> _u - list of doubles containing control data
  *		list<double> _y - list of doubles containing output data
  *
@@ -22,9 +21,8 @@
 
 using namespace std;
 
-list<double> get_impulse_response(list<double> _t, list<double> _u, list<double> _y)
+list<double> get_impulse_response(list<double> _u, list<double> _y)
 {
-	double Ts;						// sample time
 	int s = _u.size();				// size for creating dynamic tables
 
 	list<double> _g;				// list to return g table (computed impulse response)
@@ -48,15 +46,6 @@ list<double> get_impulse_response(list<double> _t, list<double> _u, list<double>
 		j++;
 	}
 
-	/* compute sample time */
-	double temp1, temp2;
-	list<double>::iterator it=_t.begin();
-	temp1 = *it;
-	it++;
-	temp2 = *it;
-	Ts = temp2 - temp1;
-	cout<<"sample time "<<Ts<<endl;
-
 	/* compute impulse response */
 	double u_0 = u[0];
 	
@@ -70,12 +59,6 @@ list<double> get_impulse_response(list<double> _t, list<double> _u, list<double>
 			sum += u[i]*g[k-i];
 		}
 			g[k]=(y[k]-sum)/u_0;
-	}
-
-	/* divide computed impulse response by sample time */
-	for(int i=0; i<s; i++)
-	{
-		g[i] = g[i]/Ts;
 	}
 
 	/* transfer impulse response to list */
