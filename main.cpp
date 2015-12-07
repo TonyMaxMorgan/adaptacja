@@ -8,8 +8,10 @@
 #include <cstdlib>
 #include <time.h>
 
+#include "check_input_data.h"
 #include "get_impulse_response.h"
 #include "get_step_response.h"
+
 
 using namespace std;
 
@@ -53,7 +55,25 @@ int main(int argc, char* argv[])
 	else std::cout << "Dostep do pliku zostal zabroniony!" << endl;
 	input_data.close();
 
-	
+	/* check if input data is valid */
+	int data_valid_check;
+	data_valid_check = check_input_data(time, u, y);
+	switch (data_valid_check)
+	{
+	case 0:
+		cout << "dane calkowicie poprawne" << endl;
+		break;
+	case 1:
+		cout << "wektory nierowne" << endl;
+		break;
+	case 2:
+		cout << "niestaly czas probkowania" << endl;
+		break;
+	default:
+		cout << "cos innego nie dziala" << endl;
+		break;
+	}
+
 	/* compute impulse response*/
 	impulse = get_impulse_response(u,y);
 
