@@ -23,6 +23,7 @@
 
 #include <list>
 #include <cstdlib>
+#include <cmath>
 #include "check_input_data.h"
 
 using namespace std;
@@ -52,7 +53,7 @@ int check_input_data(list<double> _t, list<double> _u, list<double> _y)
 
 	for (int i=1; i<(_t.size()); i++)
 	{
-		if ( !((Ts-(t[i]-t[i-1])-Ts)<eps) )
+		if ( !( abs(Ts-(t[i]-t[i-1]))<eps ) )
 		{
 			check = 2;		// change result variable to 2
 			delete [] t;
