@@ -137,7 +137,6 @@ str_tf = [handles.testName '_tf.mat'];
 handles.tran_fun = load(str_tf);
 
 axes(handles.impulse_plot);
-handles.fh1 = gcf;
 plot(handles.t,handles.g);
 grid on;
 hold on;

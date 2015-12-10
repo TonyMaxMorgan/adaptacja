@@ -22,7 +22,7 @@ function varargout = generateData(varargin)
 
 % Edit the above text to modify the response to help generateData
 
-% Last Modified by GUIDE v2.5 10-Dec-2015 13:50:41
+% Last Modified by GUIDE v2.5 10-Dec-2015 16:07:00
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -64,7 +64,7 @@ handles.duration = 10;
 handles.num = [];
 handles.den = [];
 handles.control = 1;
-handles.noise = 0;
+% handles.noise = 0;
 
 assignin('base', 'Ts', handles.sampleTime);
 assignin('base', 'num', handles.num);
@@ -97,12 +97,14 @@ set(handles.sine_panel, 'Visible', 'off');
 set(handles.triangle_panel, 'Visible', 'off');
 
 assignin('base', 'k_noise', 0);
-assignin('base', 'A_noise', 0);
+assignin('base', 'A_noise', 0.01);
+set(handles.a_noise_edit, 'Enable', 'off');
 
 assignin('base', 'slope_ramp', 0.1);
 assignin('base', 'A_sine', 1);
 assignin('base', 'f_sine', 1);
 assignin('base', 'f_triangle', 1);
+assignin('base', 'A_triangle', 1);
 
 set(handles.sine_panel, 'Parent', handles.control_panel);
 set(handles.sine_panel, 'Position', get(handles.ramp_panel, 'Position'));
@@ -186,7 +188,7 @@ function duration_edit_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of duration_edit as text
 %        str2double(get(hObject,'String')) returns contents of duration_edit as a double
 
-handles.duration = get(handles.duration_edit, 'Value');
+handles.duration = str2double(get(handles.duration_edit, 'String'));
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -431,7 +433,108 @@ function generate_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-disp(num2str(handles.duration));
+transfer_fun = tf(handles.num, handles.den);
+tfName = [handles.name '_tf.mat'];
+save(tfName, 'transfer_fun');
+
 simOut = sim('generate_model.slx', 'StopTime', num2str(handles.duration));
-assignin('base', 'sim_out', simOut);
-disp('simulation done');
+% assignin('base','sim_out', simOut);
+u_struct = get(simOut, 'u');
+y_struct = get(simOut, 'y');
+handles.u = u_struct.signals.values;
+handles.y = y_struct.signals.values;
+if u_struct.time ~= y_struct.time
+    error('Time vectors for u and y are not the same.');
+else
+    handles.time = y_struct.time;
+end
+
+fileName = [handles.name '_data.txt'];
+fileID = fopen(fileName, 'w');
+fprintf(fileID,'%f %f %f\n',[handles.time handles.u handles.y]');
+fclose(fileID);
+
+axes(handles.axes1);
+plot(handles.time, handles.u);
+hold on;
+grid on;
+plot(handles.time, handles.y);
+hold off;
+xlabel('time');
+ylabel('u, y');
+title('Control and response');
+legend('control', 'response');
+lh=findall(gcf,'tag','legend');
+set(lh,'location','southoutside');
+
+msgbox(['Simulation completed and data written to file ''' fileName '''']);
+
+guidata(hObject, handles);
+
+
+% --- Executes on button press in noise_checkbox.
+function noise_checkbox_Callback(hObject, eventdata, handles)
+% hObject    handle to noise_checkbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of noise_checkbox
+
+if get(handles.noise_checkbox, 'Value') == 0
+    set(handles.a_noise_edit, 'Enable', 'off');
+    assignin('base', 'k_noise', 0);
+elseif get(handles.noise_checkbox, 'Value') == 1
+    set(handles.a_noise_edit, 'Enable', 'on');
+    assignin('base', 'k_noise', 1);
+end
+guidata(hObject, handles);
+
+
+
+function a_noise_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to a_noise_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of a_noise_edit as text
+%        str2double(get(hObject,'String')) returns contents of a_noise_edit as a double
+
+assignin('base', 'A_noise', str2double(get(handles.a_noise_edit, 'String')));
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function a_noise_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to a_noise_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function a_triangle_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to a_triangle_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of a_triangle_edit as text
+%        str2double(get(hObject,'String')) returns contents of a_triangle_edit as a double
+
+assignin('base', 'A_triangle', str2double(get(handles.a_triangle_edit, 'String')));
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function a_triangle_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to a_triangle_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
