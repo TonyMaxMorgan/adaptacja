@@ -22,7 +22,7 @@ function varargout = generateData(varargin)
 
 % Edit the above text to modify the response to help generateData
 
-% Last Modified by GUIDE v2.5 10-Dec-2015 16:07:00
+% Last Modified by GUIDE v2.5 10-Dec-2015 19:27:37
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -217,7 +217,11 @@ handles.num = get(handles.num_edit, 'String');
 temp = strsplit(handles.num, ' ');
 temp = strrep(temp, '[', '');
 temp = strrep(temp, ']', '');
-handles.num = str2double(temp);
+temp = str2double(temp);
+while temp(1) == 0
+    temp = temp(2:end);
+end
+handles.num = temp;
 assignin('base', 'num', handles.num);
 guidata(hObject, handles);
 
@@ -247,7 +251,11 @@ handles.den = get(handles.den_edit, 'String');
 temp = strsplit(handles.den, ' ');
 temp = strrep(temp, '[', '');
 temp = strrep(temp, ']', '');
-handles.den = str2double(temp);
+temp = str2double(temp);
+while temp(1) == 0
+    temp = temp(2:end);
+end
+handles.den = temp;
 assignin('base', 'den', handles.den);
 guidata(hObject, handles);
 
@@ -433,42 +441,92 @@ function generate_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-transfer_fun = tf(handles.num, handles.den);
-tfName = [handles.name '_tf.mat'];
-save(tfName, 'transfer_fun');
-
-simOut = sim('generate_model.slx', 'StopTime', num2str(handles.duration));
-% assignin('base','sim_out', simOut);
-u_struct = get(simOut, 'u');
-y_struct = get(simOut, 'y');
-handles.u = u_struct.signals.values;
-handles.y = y_struct.signals.values;
-if u_struct.time ~= y_struct.time
-    error('Time vectors for u and y are not the same.');
+if length(handles.den) <= length(handles.num)
+    msgbox('Numerator of transfer function has to have less elements thsn denominator.');
 else
-    handles.time = y_struct.time;
+
+    transfer_fun = tf(handles.num, handles.den);
+    tfName = [handles.name '_tf.mat'];
+    save(tfName, 'transfer_fun');
+
+    simOut = sim('generate_model.slx', 'StopTime', num2str(handles.duration));
+    % assignin('base','sim_out', simOut);
+    u_struct = get(simOut, 'u');
+    y_struct = get(simOut, 'y');
+    handles.u = u_struct.signals.values;
+    handles.y = y_struct.signals.values;
+    if u_struct.time ~= y_struct.time
+        error('Time vectors for u and y are not the same.');
+    else
+        handles.time = y_struct.time;
+    end
+
+    axes(handles.axes1);
+    plot(handles.time, handles.u);
+    hold on;
+    grid on;
+    plot(handles.time, handles.y);
+    hold off;
+    xlabel('time');
+    ylabel('u, y');
+    title('Control and response');
+    legend('control', 'response');
+    lh=findall(gcf,'tag','legend');
+    set(lh,'location','southoutside');
+
 end
+    
+guidata(hObject, handles);
 
-fileName = [handles.name '_data.txt'];
-fileID = fopen(fileName, 'w');
-fprintf(fileID,'%f %f %f\n',[handles.time handles.u handles.y]');
-fclose(fileID);
 
-axes(handles.axes1);
-plot(handles.time, handles.u);
-hold on;
-grid on;
-plot(handles.time, handles.y);
-hold off;
-xlabel('time');
-ylabel('u, y');
-title('Control and response');
-legend('control', 'response');
-lh=findall(gcf,'tag','legend');
-set(lh,'location','southoutside');
+% --- Executes on button press in save_button.
+function save_button_Callback(hObject, eventdata, handles)
+% hObject    handle to save_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
 
-msgbox(['Simulation completed and data written to file ''' fileName '''']);
+if length(handles.den) <= length(handles.num)
+    msgbox('Numerator of transfer function has to have less elements thsn denominator.');
+else
 
+    transfer_fun = tf(handles.num, handles.den);
+    tfName = [handles.name '_tf.mat'];
+    save(tfName, 'transfer_fun');
+
+    simOut = sim('generate_model.slx', 'StopTime', num2str(handles.duration));
+    % assignin('base','sim_out', simOut);
+    u_struct = get(simOut, 'u');
+    y_struct = get(simOut, 'y');
+    handles.u = u_struct.signals.values;
+    handles.y = y_struct.signals.values;
+    if u_struct.time ~= y_struct.time
+        error('Time vectors for u and y are not the same.');
+    else
+        handles.time = y_struct.time;
+    end
+
+    fileName = [handles.name '_data.txt'];
+    fileID = fopen(fileName, 'w');
+    fprintf(fileID,'%f %f %f\n',[handles.time handles.u handles.y]');
+    fclose(fileID);
+
+    axes(handles.axes1);
+    plot(handles.time, handles.u);
+    hold on;
+    grid on;
+    plot(handles.time, handles.y);
+    hold off;
+    xlabel('time');
+    ylabel('u, y');
+    title('Control and response');
+    legend('control', 'response');
+    lh=findall(gcf,'tag','legend');
+    set(lh,'location','southoutside');
+
+    msgbox(['Simulation completed and data written to file ''' fileName '''']);
+
+end
+    
 guidata(hObject, handles);
 
 
