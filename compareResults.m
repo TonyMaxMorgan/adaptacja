@@ -88,6 +88,9 @@ function chooseFile_button_Callback(hObject, eventdata, handles)
 if pathName ~= 0
     handles.file = [pathName, fileName];
     set(handles.chooseFile_edit, 'String', handles.file);
+    [~,handles.testName,~] = fileparts(handles.file);
+    idx = strfind(handles.testName, '_response')-1;
+    handles.testName = handles.testName(1:idx);
 end
 
 % Update handles structure
@@ -103,6 +106,9 @@ function chooseFile_edit_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of chooseFile_edit as a double
 
 handles.file = get(hObject, 'String');
+[~,handles.testName,~] = fileparts(handles.file);
+idx = strfind(handles.testName, '_response')-1;
+handles.testName = handles.testName(1:idx);
 guidata(hObject, handles);
 
 
@@ -125,16 +131,17 @@ function compare_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-[t,g,h] = getDataFromFile(handles.file);
-% ZMIENIÆ !!!!!!!
-tran_fun = load('test1_tf.mat');
+[handles.t,handles.g,handles.h] = getDataFromFile(handles.file);
+
+str_tf = [handles.testName '_tf.mat'];
+handles.tran_fun = load(str_tf);
 
 axes(handles.impulse_plot);
 handles.fh1 = gcf;
-plot(t,g);
+plot(handles.t,handles.g);
 grid on;
 hold on;
-plot(t, impulse(tran_fun.transfer_fun,t));
+plot(handles.t, impulse(handles.tran_fun.transfer_fun,handles.t));
 xlabel('time');
 ylabel('y');
 title('Impulse response');
@@ -143,10 +150,10 @@ lh=findall(gcf,'tag','legend');
 set(lh,'location','southoutside');
 
 axes(handles.step_plot);
-plot(t,h);
+plot(handles.t,handles.h);
 grid on;
 hold on;
-plot(t, step(tran_fun.transfer_fun,t));
+plot(handles.t, step(handles.tran_fun.transfer_fun,handles.t));
 xlabel('time');
 ylabel('y');
 title('Step response');
@@ -202,10 +209,34 @@ else
     error('Unexpected format for saving figures.');
 end
 
-fh = figure('Units', 'normalized','Position', [0.1, 0.4, 0.4, 0.7]);
-copyobj(handles.impulse_plot, fh);
-legend('Location', 'southoutside');
-saveas(fh, 'figure',format);
+
+
+fh = figure('Name', [handles.testName, ' - Impulse response'], 'NumberTitle', 'off', 'Units', 'normalized','Position', [1.1, 0.3, 0.4, 0.7]);
+plot(handles.t,handles.g);
+grid on;
+hold on;
+plot(handles.t, impulse(handles.tran_fun.transfer_fun,handles.t));
+xlabel('time');
+ylabel('y');
+title('Impulse response');
+legend('Computed response', 'Reference response');
+lh=findall(gcf,'tag','legend');
+set(lh,'location','southoutside');
+saveas(fh, [handles.testName, '_impulse'],format);
+close(fh);
+
+fh = figure('Name', [handles.testName, ' - Step response'], 'NumberTitle', 'off', 'Units', 'normalized','Position', [1.1, 0.3, 0.4, 0.7]);
+plot(handles.t,handles.h);
+grid on;
+hold on;
+plot(handles.t, step(handles.tran_fun.transfer_fun,handles.t));
+xlabel('time');
+ylabel('y');
+title('Step response');
+legend('Computed response', 'Reference response');
+lh=findall(gcf,'tag','legend');
+set(lh,'location','southoutside');
+saveas(fh, [handles.testName, '_step'],format);
 close(fh);
 
 
