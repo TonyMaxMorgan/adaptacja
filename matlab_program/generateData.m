@@ -22,7 +22,7 @@ function varargout = generateData(varargin)
 
 % Edit the above text to modify the response to help generateData
 
-% Last Modified by GUIDE v2.5 10-Dec-2015 19:27:37
+% Last Modified by GUIDE v2.5 17-Dec-2015 14:36:32
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -75,26 +75,37 @@ switch handles.control
         assignin('base', 'k_ramp', 1);
         assignin('base', 'k_sine', 0);
         assignin('base', 'k_triangle', 0);
+        assignin('base', 'k_variant', 0);
     case 2
         % Sine
         assignin('base', 'k_sine', 1);
         assignin('base', 'k_ramp', 0);
         assignin('base', 'k_triangle', 0);
+        assignin('base', 'k_variant', 0);
     case 3
         % Triangle
         assignin('base', 'k_triangle', 1);
         assignin('base', 'k_ramp', 0);
         assignin('base', 'k_sine', 0);
+        assignin('base', 'k_variant', 0);
+    case 4
+        % Triangle
+        assignin('base', 'k_variant', 1);
+        assignin('base', 'k_ramp', 0);
+        assignin('base', 'k_sine', 0);
+        assignin('base', 'k_triangle', 0);
     otherwise
         % None
         assignin('base', 'k_triangle', 0);
         assignin('base', 'k_ramp', 0);
         assignin('base', 'k_sine', 0);
+        assignin('base', 'k_variant', 0);
 end
 
 set(handles.ramp_panel, 'Visible', 'on');
 set(handles.sine_panel, 'Visible', 'off');
 set(handles.triangle_panel, 'Visible', 'off');
+set(handles.variant_panel, 'Visible', 'off');
 
 assignin('base', 'k_noise', 0);
 assignin('base', 'A_noise', 0.01);
@@ -105,11 +116,15 @@ assignin('base', 'A_sine', 1);
 assignin('base', 'f_sine', 1);
 assignin('base', 'f_triangle', 1);
 assignin('base', 'A_triangle', 1);
+assignin('base', 'const_variant', 5);
+assignin('base', 'A_variant', 1);
 
 set(handles.sine_panel, 'Parent', handles.control_panel);
 set(handles.sine_panel, 'Position', get(handles.ramp_panel, 'Position'));
 set(handles.triangle_panel, 'Parent', handles.control_panel);
 set(handles.triangle_panel, 'Position', get(handles.ramp_panel, 'Position'));
+set(handles.variant_panel, 'Parent', handles.control_panel);
+set(handles.variant_panel, 'Position', get(handles.ramp_panel, 'Position'));
 
 % Update handles structure
 guidata(hObject, handles);
@@ -289,33 +304,51 @@ switch handles.control
         assignin('base', 'k_ramp', 1);
         assignin('base', 'k_sine', 0);
         assignin('base', 'k_triangle', 0);
+        assignin('base', 'k_variant', 0);
         set(handles.ramp_panel, 'Visible', 'on');
         set(handles.sine_panel, 'Visible', 'off');
         set(handles.triangle_panel, 'Visible', 'off');
+        set(handles.variant_panel, 'Visible', 'off');
     case 2
         % Sine
         assignin('base', 'k_sine', 1);
         assignin('base', 'k_ramp', 0);
         assignin('base', 'k_triangle', 0);
+        assignin('base', 'k_variant', 0);
         set(handles.ramp_panel, 'Visible', 'off');
         set(handles.triangle_panel, 'Visible', 'off');
+        set(handles.variant_panel, 'Visible', 'off');
         set(handles.sine_panel, 'Visible', 'on');
     case 3
         % Triangle
         assignin('base', 'k_triangle', 1);
         assignin('base', 'k_ramp', 0);
         assignin('base', 'k_sine', 0);
+        assignin('base', 'k_variant', 0);
         set(handles.ramp_panel, 'Visible', 'off');
         set(handles.sine_panel, 'Visible', 'off');
         set(handles.triangle_panel, 'Visible', 'on');
+        set(handles.variant_panel, 'Visible', 'off');
+    case 4
+        % Triangle
+        assignin('base', 'k_triangle', 0);
+        assignin('base', 'k_ramp', 0);
+        assignin('base', 'k_sine', 0);
+        assignin('base', 'k_variant', 1);
+        set(handles.ramp_panel, 'Visible', 'off');
+        set(handles.sine_panel, 'Visible', 'off');
+        set(handles.triangle_panel, 'Visible', 'off');
+        set(handles.variant_panel, 'Visible', 'on');
     otherwise
         % None
         assignin('base', 'k_triangle', 0);
         assignin('base', 'k_ramp', 0);
         assignin('base', 'k_sine', 0);
+        assignin('base', 'k_variant', 0);
         set(handles.triangle_panel, 'Visible', 'off');
         set(handles.ramp_panel, 'Visible', 'off');
         set(handles.sine_panel, 'Visible', 'off');
+        set(handles.variant_panel, 'Visible', 'off');
 end
 
 guidata(hObject, handles);
@@ -444,13 +477,8 @@ function generate_button_Callback(hObject, eventdata, handles)
 if length(handles.den) <= length(handles.num)
     msgbox('Numerator of transfer function has to have less elements thsn denominator.');
 else
-
-    transfer_fun = tf(handles.num, handles.den);
-    tfName = [handles.name '_tf.mat'];
-    save(tfName, 'transfer_fun');
-
+    
     simOut = sim('generate_model.slx', 'StopTime', num2str(handles.duration));
-    % assignin('base','sim_out', simOut);
     u_struct = get(simOut, 'u');
     y_struct = get(simOut, 'y');
     handles.u = u_struct.signals.values;
@@ -588,6 +616,56 @@ guidata(hObject, handles);
 % --- Executes during object creation, after setting all properties.
 function a_triangle_edit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to a_triangle_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function sp_variant_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to sp_variant_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of sp_variant_edit as text
+%        str2double(get(hObject,'String')) returns contents of sp_variant_edit as a double
+
+assignin('base', 'const_variant', str2double(get(handles.sp_variant_edit, 'String')));
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function sp_variant_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to sp_variant_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function power_variant_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to power_variant_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of power_variant_edit as text
+%        str2double(get(hObject,'String')) returns contents of power_variant_edit as a double
+
+assignin('base', 'A_variant', str2double(get(handles.power_variant_edit, 'String')));
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function power_variant_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to power_variant_edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
