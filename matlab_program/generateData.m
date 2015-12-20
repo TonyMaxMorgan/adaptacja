@@ -22,7 +22,7 @@ function varargout = generateData(varargin)
 
 % Edit the above text to modify the response to help generateData
 
-% Last Modified by GUIDE v2.5 17-Dec-2015 17:15:28
+% Last Modified by GUIDE v2.5 20-Dec-2015 21:20:57
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -475,7 +475,7 @@ function generate_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 if length(handles.den) <= length(handles.num)
-    msgbox('Numerator of transfer function has to have less elements thsn denominator.');
+    msgbox('Numerator of transfer function has to have less elements than denominator.');
 else
     
     simOut = sim('generate_model.slx', 'StopTime', num2str(handles.duration));
@@ -514,7 +514,7 @@ function save_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 if length(handles.den) <= length(handles.num)
-    msgbox('Numerator of transfer function has to have less elements thsn denominator.');
+    msgbox('Numerator of transfer function has to have less elements than denominator.');
 else
 
     transfer_fun = tf(handles.num, handles.den);
@@ -711,3 +711,25 @@ function den_edit_ButtonDownFcn(hObject, eventdata, handles)
 set(handles.den_edit, 'Enable', 'on');
 set(handles.den_edit, 'String', '');
 guidata(hObject, handles);
+
+
+% --- Executes on button press in compute_button.
+function compute_button_Callback(hObject, eventdata, handles)
+% hObject    handle to compute_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+while 1
+    [fileName, pathName] = uigetfile('.txt', 'Choose file with data');
+    pathName = [pathName, fileName];
+    [~,testName,ext] = fileparts(pathName);
+    if isempty(strfind(testName, '_data')) | strcmp(ext, '.txt') == 0
+        uiwait(msgbox('File with data must be ''*_data.txt', 'Error', 'error'));
+    else
+        break;
+    end
+end    
+
+system(['adaptacja.exe ' pathName]);
+
+disp('Done');
