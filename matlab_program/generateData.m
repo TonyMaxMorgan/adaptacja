@@ -22,7 +22,7 @@ function varargout = generateData(varargin)
 
 % Edit the above text to modify the response to help generateData
 
-% Last Modified by GUIDE v2.5 17-Dec-2015 14:36:32
+% Last Modified by GUIDE v2.5 17-Dec-2015 17:15:28
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -490,10 +490,10 @@ else
     end
 
     axes(handles.axes1);
-    plot(handles.time, handles.u);
+    plot(handles.time, handles.u, 'b');
     hold on;
     grid on;
-    plot(handles.time, handles.y);
+    plot(handles.time, handles.y, 'r');
     hold off;
     xlabel('time');
     ylabel('u, y');
@@ -539,10 +539,10 @@ else
     fclose(fileID);
 
     axes(handles.axes1);
-    plot(handles.time, handles.u);
+    plot(handles.time, handles.u, 'b');
     hold on;
     grid on;
-    plot(handles.time, handles.y);
+    plot(handles.time, handles.y, 'r');
     hold off;
     xlabel('time');
     ylabel('u, y');
@@ -674,3 +674,40 @@ function power_variant_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over name_edit.
+function name_edit_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to name_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+set(handles.name_edit, 'Enable', 'on');
+set(handles.name_edit, 'String', '');
+guidata(hObject, handles);
+
+
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over num_edit.
+function num_edit_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to num_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+set(handles.num_edit, 'Enable', 'on');
+set(handles.num_edit, 'String', '');
+guidata(hObject, handles);
+
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over den_edit.
+function den_edit_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to den_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+set(handles.den_edit, 'Enable', 'on');
+set(handles.den_edit, 'String', '');
+guidata(hObject, handles);
