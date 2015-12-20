@@ -8,7 +8,6 @@
 #include <cstdlib>
 #include <time.h>
 
-#include "check_input_data.h"
 #include "get_impulse_response.h"
 #include "get_step_response.h"
 
@@ -18,8 +17,8 @@ using namespace std;
 double get_sample_time(list<double> _t);
 
 /* !!! Change desired input and output directories and filenames !!! */
-	string input_location = "data.txt";
-	string output_location = "response.txt";
+//	string input_location = "test1_data.txt";
+//	string output_location = "test1_response.txt";
 /* !!! Change desired input and output directories and filenames !!! */
 
 
@@ -31,6 +30,27 @@ int main(int argc, char* argv[])
 	list<double> u;
 	list<double> y;
 	std::fstream input_data;
+
+	/* If you want to run .exe with the same location of input and output data every time - uncomment this section */
+/*
+	string input_location = "test1_data.txt";
+	string output_location = "test1_response.txt";
+*/
+
+
+	/* If you want to run .exe from terminal with arguments - uncomment this section */
+	/* As first argument give input location e.g. C:\test_data.txt */
+	
+	string input_location;
+	string output_location;
+	input_location = argv[1];
+	cout<<input_location<<endl;
+	output_location = input_location;
+	output_location.erase(output_location.end()-9,output_location.end());
+	output_location.append("_response.txt");
+	cout<<output_location<<endl;
+ 
+
 
 	/* transfer t u y to corresponding lists*/
 	input_data.open(input_location, std::ios::in | std::ios::out );
@@ -50,29 +70,10 @@ int main(int argc, char* argv[])
 				y.push_back(temp_y);
 			  }
 		  }
-		  cout<<"Wczytano wektory z pliku "<<input_location<<endl;
+		  cout<<"Wczytano wektory z pliku: "<<input_location<<endl;
 	} 
 	else std::cout << "Dostep do pliku zostal zabroniony!" << endl;
 	input_data.close();
-
-	/* check if input data is valid */
-	int data_valid_check;
-	data_valid_check = check_input_data(time, u, y);
-	switch (data_valid_check)
-	{
-	case 0:
-		cout << "dane calkowicie poprawne" << endl;
-		break;
-	case 1:
-		cout << "wektory nierowne" << endl;
-		break;
-	case 2:
-		cout << "niestaly czas probkowania" << endl;
-		break;
-	default:
-		cout << "cos innego nie dziala" << endl;
-		break;
-	}
 
 	/* compute impulse response*/
 	impulse = get_impulse_response(u,y);
@@ -136,14 +137,10 @@ int main(int argc, char* argv[])
 	 delete [] g;
 	 delete [] h;
 	 delete [] t;	
-
-	  
-
 	
 	
 	getchar();
-	getchar();
-	
+
 	return 0;
 }
 
