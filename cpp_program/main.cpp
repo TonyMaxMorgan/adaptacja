@@ -11,15 +11,9 @@
 #include "get_impulse_response.h"
 #include "get_step_response.h"
 
-
 using namespace std;
 
 double get_sample_time(list<double> _t);
-
-/* !!! Change desired input and output directories and filenames !!! */
-//	string input_location = "test1_data.txt";
-//	string output_location = "test1_response.txt";
-/* !!! Change desired input and output directories and filenames !!! */
 
 
 int main(int argc, char* argv[])
@@ -32,31 +26,43 @@ int main(int argc, char* argv[])
 	std::fstream input_data;
 
 	/* If you want to run .exe with the same location of input and output data every time - uncomment this section */
-/*
+
+	/* start of section */
+	/*
 	string input_location = "test1_data.txt";
 	string output_location = "test1_response.txt";
-*/
+	*/
+	/* end of section */
+
 
 
 	/* If you want to run .exe from terminal with arguments - uncomment this section */
 	/* As first argument give input location e.g. C:\test_data.txt */
 	
+	/* start of section */
 	string input_location;
 	string output_location;
+	if (argc > 1)
+	{
 	input_location = argv[1];
 	cout<<input_location<<endl;
 	output_location = input_location;
 	output_location.erase(output_location.end()-9,output_location.end());
 	output_location.append("_response.txt");
 	cout<<output_location<<endl;
- 
-
+	}
+	else
+	{
+		cout << "Tried to run program without input argument!" << endl;
+		exit(1);
+	}
+	/* end of section */
 
 	/* transfer t u y to corresponding lists*/
 	input_data.open(input_location, std::ios::in | std::ios::out );
 	if( input_data.good() == true )
 	{
-		std::cout << "Uzyskano dostep do pliku!" << endl;
+		std::cout << "Input data file opened successfully!" << endl;
 		
 		while(!input_data.eof())
 		  {
@@ -70,12 +76,16 @@ int main(int argc, char* argv[])
 				y.push_back(temp_y);
 			  }
 		  }
-		  cout<<"Wczytano wektory z pliku: "<<input_location<<endl;
+		  cout << "Data read from file: " << input_location << endl;
 	} 
-	else std::cout << "Dostep do pliku zostal zabroniony!" << endl;
+	else
+	{
+		std::cout << "File forbidden or don't exist!" << endl;
+		exit(1);
+	}
 	input_data.close();
 
-	/* compute impulse response*/
+	/* compute impulse response */
 	impulse = get_impulse_response(u,y);
 
 	/* compute step response */
@@ -122,14 +132,16 @@ int main(int argc, char* argv[])
 	ofstream output_data (output_location, ios_base::in | ios_base::trunc);
  
 	 if(!output_data)
-		cout << "Nie mo¿na otworzyæ pliku!" << endl;
+	 {
+		cout << "Cannot open output file!" << endl;
+	 }
 	 else
 	 {
 		for (int i=0; i<time.size(); i++)
 		{
 			output_data << t[i] << ", " << g[i] << ", " << h[i] << endl;
 		}
-		cout << "Dane zapisano pomyslnie do pliku: "<< output_location << endl;
+		cout << "Data write to file: "<< output_location << endl;
 	 }
 		output_data.close();
 	 
@@ -138,8 +150,7 @@ int main(int argc, char* argv[])
 	 delete [] h;
 	 delete [] t;	
 	
-	
-	getchar();
+	 cout << "Computation complete!" << endl;
 
 	return 0;
 }
