@@ -22,7 +22,7 @@ function varargout = generateData(varargin)
 
 % Edit the above text to modify the response to help generateData
 
-% Last Modified by GUIDE v2.5 10-Dec-2015 16:07:00
+% Last Modified by GUIDE v2.5 20-Dec-2015 21:20:57
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -75,26 +75,37 @@ switch handles.control
         assignin('base', 'k_ramp', 1);
         assignin('base', 'k_sine', 0);
         assignin('base', 'k_triangle', 0);
+        assignin('base', 'k_variant', 0);
     case 2
         % Sine
         assignin('base', 'k_sine', 1);
         assignin('base', 'k_ramp', 0);
         assignin('base', 'k_triangle', 0);
+        assignin('base', 'k_variant', 0);
     case 3
         % Triangle
         assignin('base', 'k_triangle', 1);
         assignin('base', 'k_ramp', 0);
         assignin('base', 'k_sine', 0);
+        assignin('base', 'k_variant', 0);
+    case 4
+        % Triangle
+        assignin('base', 'k_variant', 1);
+        assignin('base', 'k_ramp', 0);
+        assignin('base', 'k_sine', 0);
+        assignin('base', 'k_triangle', 0);
     otherwise
         % None
         assignin('base', 'k_triangle', 0);
         assignin('base', 'k_ramp', 0);
         assignin('base', 'k_sine', 0);
+        assignin('base', 'k_variant', 0);
 end
 
 set(handles.ramp_panel, 'Visible', 'on');
 set(handles.sine_panel, 'Visible', 'off');
 set(handles.triangle_panel, 'Visible', 'off');
+set(handles.variant_panel, 'Visible', 'off');
 
 assignin('base', 'k_noise', 0);
 assignin('base', 'A_noise', 0.01);
@@ -105,11 +116,15 @@ assignin('base', 'A_sine', 1);
 assignin('base', 'f_sine', 1);
 assignin('base', 'f_triangle', 1);
 assignin('base', 'A_triangle', 1);
+assignin('base', 'const_variant', 5);
+assignin('base', 'A_variant', 1);
 
 set(handles.sine_panel, 'Parent', handles.control_panel);
 set(handles.sine_panel, 'Position', get(handles.ramp_panel, 'Position'));
 set(handles.triangle_panel, 'Parent', handles.control_panel);
 set(handles.triangle_panel, 'Position', get(handles.ramp_panel, 'Position'));
+set(handles.variant_panel, 'Parent', handles.control_panel);
+set(handles.variant_panel, 'Position', get(handles.ramp_panel, 'Position'));
 
 % Update handles structure
 guidata(hObject, handles);
@@ -217,7 +232,11 @@ handles.num = get(handles.num_edit, 'String');
 temp = strsplit(handles.num, ' ');
 temp = strrep(temp, '[', '');
 temp = strrep(temp, ']', '');
-handles.num = str2double(temp);
+temp = str2double(temp);
+while temp(1) == 0
+    temp = temp(2:end);
+end
+handles.num = temp;
 assignin('base', 'num', handles.num);
 guidata(hObject, handles);
 
@@ -247,7 +266,11 @@ handles.den = get(handles.den_edit, 'String');
 temp = strsplit(handles.den, ' ');
 temp = strrep(temp, '[', '');
 temp = strrep(temp, ']', '');
-handles.den = str2double(temp);
+temp = str2double(temp);
+while temp(1) == 0
+    temp = temp(2:end);
+end
+handles.den = temp;
 assignin('base', 'den', handles.den);
 guidata(hObject, handles);
 
@@ -281,33 +304,51 @@ switch handles.control
         assignin('base', 'k_ramp', 1);
         assignin('base', 'k_sine', 0);
         assignin('base', 'k_triangle', 0);
+        assignin('base', 'k_variant', 0);
         set(handles.ramp_panel, 'Visible', 'on');
         set(handles.sine_panel, 'Visible', 'off');
         set(handles.triangle_panel, 'Visible', 'off');
+        set(handles.variant_panel, 'Visible', 'off');
     case 2
         % Sine
         assignin('base', 'k_sine', 1);
         assignin('base', 'k_ramp', 0);
         assignin('base', 'k_triangle', 0);
+        assignin('base', 'k_variant', 0);
         set(handles.ramp_panel, 'Visible', 'off');
         set(handles.triangle_panel, 'Visible', 'off');
+        set(handles.variant_panel, 'Visible', 'off');
         set(handles.sine_panel, 'Visible', 'on');
     case 3
         % Triangle
         assignin('base', 'k_triangle', 1);
         assignin('base', 'k_ramp', 0);
         assignin('base', 'k_sine', 0);
+        assignin('base', 'k_variant', 0);
         set(handles.ramp_panel, 'Visible', 'off');
         set(handles.sine_panel, 'Visible', 'off');
         set(handles.triangle_panel, 'Visible', 'on');
+        set(handles.variant_panel, 'Visible', 'off');
+    case 4
+        % Triangle
+        assignin('base', 'k_triangle', 0);
+        assignin('base', 'k_ramp', 0);
+        assignin('base', 'k_sine', 0);
+        assignin('base', 'k_variant', 1);
+        set(handles.ramp_panel, 'Visible', 'off');
+        set(handles.sine_panel, 'Visible', 'off');
+        set(handles.triangle_panel, 'Visible', 'off');
+        set(handles.variant_panel, 'Visible', 'on');
     otherwise
         % None
         assignin('base', 'k_triangle', 0);
         assignin('base', 'k_ramp', 0);
         assignin('base', 'k_sine', 0);
+        assignin('base', 'k_variant', 0);
         set(handles.triangle_panel, 'Visible', 'off');
         set(handles.ramp_panel, 'Visible', 'off');
         set(handles.sine_panel, 'Visible', 'off');
+        set(handles.variant_panel, 'Visible', 'off');
 end
 
 guidata(hObject, handles);
@@ -433,42 +474,87 @@ function generate_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-transfer_fun = tf(handles.num, handles.den);
-tfName = [handles.name '_tf.mat'];
-save(tfName, 'transfer_fun');
-
-simOut = sim('generate_model.slx', 'StopTime', num2str(handles.duration));
-% assignin('base','sim_out', simOut);
-u_struct = get(simOut, 'u');
-y_struct = get(simOut, 'y');
-handles.u = u_struct.signals.values;
-handles.y = y_struct.signals.values;
-if u_struct.time ~= y_struct.time
-    error('Time vectors for u and y are not the same.');
+if length(handles.den) <= length(handles.num)
+    msgbox('Numerator of transfer function has to have less elements than denominator.');
 else
-    handles.time = y_struct.time;
+    
+    simOut = sim('generate_model.slx', 'StopTime', num2str(handles.duration));
+    u_struct = get(simOut, 'u');
+    y_struct = get(simOut, 'y');
+    handles.u = u_struct.signals.values;
+    handles.y = y_struct.signals.values;
+    if u_struct.time ~= y_struct.time
+        error('Time vectors for u and y are not the same.');
+    else
+        handles.time = y_struct.time;
+    end
+
+    axes(handles.axes1);
+    plot(handles.time, handles.u, 'b');
+    hold on;
+    grid on;
+    plot(handles.time, handles.y, 'r');
+    hold off;
+    xlabel('time');
+    ylabel('u, y');
+    title('Control and response');
+    legend('control', 'response');
+    lh=findall(gcf,'tag','legend');
+    set(lh,'location','southoutside');
+
 end
+    
+guidata(hObject, handles);
 
-fileName = [handles.name '_data.txt'];
-fileID = fopen(fileName, 'w');
-fprintf(fileID,'%f %f %f\n',[handles.time handles.u handles.y]');
-fclose(fileID);
 
-axes(handles.axes1);
-plot(handles.time, handles.u);
-hold on;
-grid on;
-plot(handles.time, handles.y);
-hold off;
-xlabel('time');
-ylabel('u, y');
-title('Control and response');
-legend('control', 'response');
-lh=findall(gcf,'tag','legend');
-set(lh,'location','southoutside');
+% --- Executes on button press in save_button.
+function save_button_Callback(hObject, eventdata, handles)
+% hObject    handle to save_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
 
-msgbox(['Simulation completed and data written to file ''' fileName '''']);
+if length(handles.den) <= length(handles.num)
+    msgbox('Numerator of transfer function has to have less elements than denominator.');
+else
 
+    transfer_fun = tf(handles.num, handles.den);
+    tfName = [handles.name '_tf.mat'];
+    save(tfName, 'transfer_fun');
+
+    simOut = sim('generate_model.slx', 'StopTime', num2str(handles.duration));
+    % assignin('base','sim_out', simOut);
+    u_struct = get(simOut, 'u');
+    y_struct = get(simOut, 'y');
+    handles.u = u_struct.signals.values;
+    handles.y = y_struct.signals.values;
+    if u_struct.time ~= y_struct.time
+        error('Time vectors for u and y are not the same.');
+    else
+        handles.time = y_struct.time;
+    end
+
+    fileName = [handles.name '_data.txt'];
+    fileID = fopen(fileName, 'w');
+    fprintf(fileID,'%f %f %f\n',[handles.time handles.u handles.y]');
+    fclose(fileID);
+
+    axes(handles.axes1);
+    plot(handles.time, handles.u, 'b');
+    hold on;
+    grid on;
+    plot(handles.time, handles.y, 'r');
+    hold off;
+    xlabel('time');
+    ylabel('u, y');
+    title('Control and response');
+    legend('control', 'response');
+    lh=findall(gcf,'tag','legend');
+    set(lh,'location','southoutside');
+
+    msgbox(['Simulation completed and data written to file ''' fileName '''']);
+
+end
+    
 guidata(hObject, handles);
 
 
@@ -538,3 +624,112 @@ function a_triangle_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+
+function sp_variant_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to sp_variant_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of sp_variant_edit as text
+%        str2double(get(hObject,'String')) returns contents of sp_variant_edit as a double
+
+assignin('base', 'const_variant', str2double(get(handles.sp_variant_edit, 'String')));
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function sp_variant_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to sp_variant_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function power_variant_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to power_variant_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of power_variant_edit as text
+%        str2double(get(hObject,'String')) returns contents of power_variant_edit as a double
+
+assignin('base', 'A_variant', str2double(get(handles.power_variant_edit, 'String')));
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function power_variant_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to power_variant_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over name_edit.
+function name_edit_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to name_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+set(handles.name_edit, 'Enable', 'on');
+set(handles.name_edit, 'String', '');
+guidata(hObject, handles);
+
+
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over num_edit.
+function num_edit_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to num_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+set(handles.num_edit, 'Enable', 'on');
+set(handles.num_edit, 'String', '');
+guidata(hObject, handles);
+
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over den_edit.
+function den_edit_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to den_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+set(handles.den_edit, 'Enable', 'on');
+set(handles.den_edit, 'String', '');
+guidata(hObject, handles);
+
+
+% --- Executes on button press in compute_button.
+function compute_button_Callback(hObject, eventdata, handles)
+% hObject    handle to compute_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+while 1
+    [fileName, pathName] = uigetfile('.txt', 'Choose file with data');
+    pathName = [pathName, fileName];
+    [~,testName,ext] = fileparts(pathName);
+    if isempty(strfind(testName, '_data')) | strcmp(ext, '.txt') == 0
+        uiwait(msgbox('File with data must be ''*_data.txt', 'Error', 'error'));
+    else
+        break;
+    end
+end    
+
+system(['adaptacja.exe ' pathName]);
+
+disp('Done');

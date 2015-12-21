@@ -137,10 +137,10 @@ str_tf = [handles.testName '_tf.mat'];
 handles.tran_fun = load(str_tf);
 
 axes(handles.impulse_plot);
-plot(handles.t,handles.g);
+plot(handles.t,handles.g,'b');
 grid on;
 hold on;
-plot(handles.t, impulse(handles.tran_fun.transfer_fun,handles.t));
+plot(handles.t, impulse(handles.tran_fun.transfer_fun,handles.t),'r');
 xlabel('time');
 ylabel('y');
 title('Impulse response');
@@ -149,10 +149,10 @@ lh=findall(gcf,'tag','legend');
 set(lh,'location','southoutside');
 
 axes(handles.step_plot);
-plot(handles.t,handles.h);
+plot(handles.t,handles.h,'b');
 grid on;
 hold on;
-plot(handles.t, step(handles.tran_fun.transfer_fun,handles.t));
+plot(handles.t, step(handles.tran_fun.transfer_fun,handles.t),'r');
 xlabel('time');
 ylabel('y');
 title('Step response');
@@ -211,10 +211,10 @@ end
 
 
 fh = figure('Name', [handles.testName, ' - Impulse response'], 'NumberTitle', 'off', 'Units', 'normalized','Position', [1.1, 0.3, 0.4, 0.7]);
-plot(handles.t,handles.g);
+plot(handles.t,handles.g,'b');
 grid on;
 hold on;
-plot(handles.t, impulse(handles.tran_fun.transfer_fun,handles.t));
+plot(handles.t, impulse(handles.tran_fun.transfer_fun,handles.t),'r');
 xlabel('time');
 ylabel('y');
 title('Impulse response');
@@ -225,10 +225,10 @@ saveas(fh, [handles.testName, '_impulse'],format);
 close(fh);
 
 fh = figure('Name', [handles.testName, ' - Step response'], 'NumberTitle', 'off', 'Units', 'normalized','Position', [1.1, 0.3, 0.4, 0.7]);
-plot(handles.t,handles.h);
+plot(handles.t,handles.h,'b');
 grid on;
 hold on;
-plot(handles.t, step(handles.tran_fun.transfer_fun,handles.t));
+plot(handles.t, step(handles.tran_fun.transfer_fun,handles.t),'r');
 xlabel('time');
 ylabel('y');
 title('Step response');
