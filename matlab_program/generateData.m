@@ -22,7 +22,7 @@ function varargout = generateData(varargin)
 
 % Edit the above text to modify the response to help generateData
 
-% Last Modified by GUIDE v2.5 22-Dec-2015 17:53:18
+% Last Modified by GUIDE v2.5 23-Dec-2015 22:36:26
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -163,6 +163,10 @@ set(handles.triangle_panel, 'Parent', handles.control_panel);
 set(handles.triangle_panel, 'Position', get(handles.step_panel, 'Position'));
 set(handles.variant_panel, 'Parent', handles.control_panel);
 set(handles.variant_panel, 'Position', get(handles.step_panel, 'Position'));
+
+% Make plot checkboxes set by default
+set(handles.plot_control_checkbox, 'Value', 1);
+set(handles.plot_response_checkbox, 'Value', 1);
 
 % Update handles structure
 guidata(hObject, handles);
@@ -600,16 +604,40 @@ else
     % Plot on the figure
     axes(handles.axes1);
     % Plot control
-    plot(handles.time, handles.u, 'b');
-    hold on;
-    grid on;
-    % Plott response
-    plot(handles.time, handles.y, 'r');
-    hold off;
+    if get(handles.plot_control_checkbox, 'Value') == 1
+        plot(handles.time, handles.u, 'b');
+        if get(handles.plot_response_checkbox, 'Value') == 1
+            hold on;
+        else
+            hold off;
+        end
+        grid on;
+    end
+    % Plot response
+    if get(handles.plot_response_checkbox, 'Value') == 1
+        plot(handles.time, handles.y, 'r');
+        grid on;
+        hold off;
+    end
     xlabel('time');
-    ylabel('u, y');
-    title('Control and response');
-    legend('control', 'response');
+    if get(handles.plot_control_checkbox, 'Value') == 1 && ...
+            get(handles.plot_response_checkbox, 'Value') == 1
+        ylabel('u, y');
+        title('Control and response');
+        legend('control', 'response');
+    elseif get(handles.plot_control_checkbox, 'Value') == 1
+        ylabel('u');
+        title('Control');
+        legend('control');
+    elseif get(handles.plot_response_checkbox, 'Value') == 1
+        ylabel('y');
+        title('Response');
+        legend('response');
+    else
+        ylabel('');
+        title('');
+        legend('');
+    end
     % Locate legend outside the plot and below the plot
     lh=findall(gcf,'tag','legend');
     set(lh,'location','southoutside');
@@ -661,19 +689,44 @@ else
     fprintf(fileID,'%f %f %f\n',[handles.time handles.u handles.y]');
     fclose(fileID);
 
+    % Plot on the figure
     axes(handles.axes1);
     % Plot control
-    plot(handles.time, handles.u, 'b');
-    hold on;
-    grid on;
+    if get(handles.plot_control_checkbox, 'Value') == 1
+        plot(handles.time, handles.u, 'b');
+        if get(handles.plot_response_checkbox, 'Value') == 1
+            hold on;
+        else
+            hold off;
+        end
+        grid on;
+    end
     % Plot response
-    plot(handles.time, handles.y, 'r');
-    hold off;
+    if get(handles.plot_response_checkbox, 'Value') == 1
+        plot(handles.time, handles.y, 'r');
+        grid on;
+        hold off;
+    end
     xlabel('time');
-    ylabel('u, y');
-    title('Control and response');
-    legend('control', 'response');
-    % Locate the legend below and outside the plot
+    if get(handles.plot_control_checkbox, 'Value') == 1 && ...
+            get(handles.plot_response_checkbox, 'Value') == 1
+        ylabel('u, y');
+        title('Control and response');
+        legend('control', 'response');
+    elseif get(handles.plot_control_checkbox, 'Value') == 1
+        ylabel('u');
+        title('Control');
+        legend('control');
+    elseif get(handles.plot_response_checkbox, 'Value') == 1
+        ylabel('y');
+        title('Response');
+        legend('response');
+    else
+        ylabel('');
+        title('');
+        legend('');
+    end
+    % Locate legend outside the plot and below the plot
     lh=findall(gcf,'tag','legend');
     set(lh,'location','southoutside');
 
@@ -909,3 +962,21 @@ function a_step_edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in plot_control_checkbox.
+function plot_control_checkbox_Callback(hObject, eventdata, handles)
+% hObject    handle to plot_control_checkbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of plot_control_checkbox
+
+
+% --- Executes on button press in plot_response_checkbox.
+function plot_response_checkbox_Callback(hObject, eventdata, handles)
+% hObject    handle to plot_response_checkbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of plot_response_checkbox
