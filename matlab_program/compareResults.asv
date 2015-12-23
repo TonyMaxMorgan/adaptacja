@@ -232,7 +232,7 @@ function save_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Get the format from radio buttons
+
 if get(handles.figSave_radio, 'Value') == 1
     format = 'fig';
 elseif get(handles.pngSave_radio, 'Value') == 1
@@ -241,8 +241,6 @@ else
     error('Unexpected format for saving figures.');
 end
 
-% Open additional window with impulse response figure (the same as in main
-% gui) to save it to file
 fh = figure('Name', [handles.testName, ' - Impulse response'], 'NumberTitle', 'off', 'Units', 'normalized','Position', [1.1, 0.3, 0.4, 0.7]);
 plot(handles.t,handles.g,'b');
 grid on;
@@ -255,12 +253,9 @@ title('Impulse response');
 legend('Computed response', 'Reference response');
 lh=findall(gcf,'tag','legend');
 set(lh,'location','southoutside');
-% Save the figure
 saveas(fh, [handles.testName, '_impulse'],format);
 close(fh);
 
-% Open additional window with step response figure (the same as in main
-% gui) to save it to file
 fh = figure('Name', [handles.testName, ' - Step response'], 'NumberTitle', 'off', 'Units', 'normalized','Position', [1.1, 0.3, 0.4, 0.7]);
 plot(handles.t,handles.h,'b');
 grid on;
@@ -273,6 +268,7 @@ title('Step response');
 legend('Computed response', 'Reference response');
 lh=findall(gcf,'tag','legend');
 set(lh,'location','southoutside');
-% Save the figure
 saveas(fh, [handles.testName, '_step'],format);
 close(fh);
+
+
