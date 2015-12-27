@@ -22,7 +22,7 @@ function varargout = compareResults(varargin)
 
 % Edit the above text to modify the response to help compareResults
 
-% Last Modified by GUIDE v2.5 03-Dec-2015 21:39:31
+% Last Modified by GUIDE v2.5 27-Dec-2015 16:13:54
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -60,6 +60,7 @@ handles.output = hObject;
 
 % Make save panel unvisible until coparision is done
 set(handles.save_panel, 'Visible', 'off');
+set(handles.error_button, 'Enable', 'off');
 
 % Update handles structure
 guidata(hObject, handles);
@@ -149,8 +150,14 @@ function compare_button_Callback(hObject, eventdata, handles)
 [handles.t,handles.g,handles.h] = getDataFromFile(handles.file);
 
 % Load file with transfer function to str_tf variable
-str_tf = [handles.testName '_tf.mat'];
-handles.tran_fun = load(str_tf);
+try
+    str_tf = [handles.testName '_tf.mat'];
+    handles.tran_fun = load(str_tf);
+    handles.tf_available = 1;
+catch
+    uiwait(msgbox('Transfer function for this test is unavailable. Only plot for computed data will be showed.'));
+    handles.tf_available = 0;
+end
 
 % Plot on left figure - impulse response
 axes(handles.impulse_plot);
@@ -159,12 +166,18 @@ plot(handles.t,handles.g,'b');
 grid on;
 hold on;
 % Plot impulse response basing on transfer function of object
-plot(handles.t, impulse(handles.tran_fun.transfer_fun,handles.t),'r');
+if handles.tf_available
+    plot(handles.t, impulse(handles.tran_fun.transfer_fun,handles.t),'r');
+end
 hold off;
 xlabel('time');
 ylabel('y');
 title('Impulse response');
-legend('Computed response', 'Reference response');
+if handles.tf_available
+    legend('Computed response', 'Reference response');
+else
+    legend('Computed response');
+end
 % Locate the legend below and outside the plot
 lh=findall(gcf,'tag','legend');
 set(lh,'location','southoutside');
@@ -176,12 +189,18 @@ plot(handles.t,handles.h,'b');
 grid on;
 hold on;
 % Plot step response basing on transfer function of the object
-plot(handles.t, step(handles.tran_fun.transfer_fun,handles.t),'r');
+if handles.tf_available
+    plot(handles.t, step(handles.tran_fun.transfer_fun,handles.t),'r');
+end
 hold off;
 xlabel('time');
 ylabel('y');
 title('Step response');
-legend('Computed response', 'Reference response');
+if handles.tf_available
+    legend('Computed response', 'Reference response');
+else
+    legend('Computed response');
+end
 % Locate the legend below and outside the plot
 lh=findall(gcf,'tag','legend');
 set(lh,'location','southoutside');
@@ -189,6 +208,10 @@ set(lh,'location','southoutside');
 % Make save panel visible and set it saving as .fig by default
 set(handles.save_panel, 'Visible', 'on');
 set(handles.figSave_radio, 'Value', 1);
+% Make error button enabled
+if handles.tf_available
+    set(handles.error_button, 'Enable', 'on');
+end
 
 % Update handles structure
 guidata(hObject, handles);
@@ -276,3 +299,36 @@ set(lh,'location','southoutside');
 % Save the figure
 saveas(fh, [handles.testName, '_step'],format);
 close(fh);
+
+
+% --- Executes on button press in error_button.
+function error_button_Callback(hObject, eventdata, handles)
+% hObject    handle to error_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Create new figure
+fh = figure('Name', 'Difference between reference and computed results',...
+    'NumberTitle', 'off');
+
+% Calculate impulse and step errors
+handles.error_impulse = impulse(handles.tran_fun.transfer_fun,handles.t) - handles.g;
+handles.error_step = step(handles.tran_fun.transfer_fun,handles.t) - handles.h;
+% Make first sample of impulse response equal to reference because it will
+% always differ and make plot of error hard to read
+handles.error_impulse(1) = 0;
+
+% Plot of impulse error
+subplot(1,2,1);
+plot(handles.t, handles.error_impulse);
+title('Impulse error');
+xlabel('t');
+ylabel('y');
+grid on
+% Plot of step error
+subplot(1,2,2);
+plot(handles.t, handles.error_step);
+title('Step error');
+xlabel('t');
+ylabel('y');
+grid on
