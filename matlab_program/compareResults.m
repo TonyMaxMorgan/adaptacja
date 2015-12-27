@@ -332,3 +332,9 @@ title('Step error');
 xlabel('t');
 ylabel('y');
 grid on
+
+handles.error_sum_impulse = sum(handles.error_impulse.^2);
+handles.error_sum_step = sum(handles.error_step.^2);
+
+msgbox(['Integral of quadratic error for impulse: ', num2str(handles.error_sum_impulse),...
+    '. Integral of quadratic error for step: ', num2str(handles.error_sum_step)]);
