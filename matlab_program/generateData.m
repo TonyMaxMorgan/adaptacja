@@ -22,7 +22,7 @@ function varargout = generateData(varargin)
 
 % Edit the above text to modify the response to help generateData
 
-% Last Modified by GUIDE v2.5 23-Dec-2015 22:36:26
+% Last Modified by GUIDE v2.5 11-Jan-2016 12:15:37
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -66,6 +66,8 @@ handles.sampleTime = 0.01;
 handles.duration = 10;
 handles.num = [];
 handles.den = [];
+handles.con_num = [];
+handles.con_den = [];
 handles.control = 1;
 
 % Save sample time and transfer function to workspace (to make model see
@@ -140,6 +142,7 @@ set(handles.a_noise_edit, 'Enable', 'off');
 assignin('base', 'A_step', 1);
 % Ramp - slope
 assignin('base', 'slope_ramp', 0.1);
+assignin('base', 'max_ramp', 1);
 % Sine - amplitude and frequency
 assignin('base', 'A_sine', 1);
 assignin('base', 'f_sine', 1);
@@ -294,8 +297,32 @@ while temp(1) == 0
     temp = temp(2:end);
 end
 % Set num parameter and save it to workspace
-handles.num = temp;
-assignin('base', 'num', handles.num);
+handles.con_num = temp;
+
+if ~isempty(handles.con_den)
+    try
+        tf_con = tf(handles.con_num, handles.con_den);
+        tf_dis = c2d(tf_con, handles.sampleTime);
+        [dis_num, dis_den] = tfdata(tf_dis);
+        dis_num = dis_num{1};
+        dis_den = dis_den{1};
+        while dis_num(1) == 0
+            dis_num = dis_num(2:end);
+        end
+        while dis_den(1) == 0
+            dis_den = dis_den(2:end);
+        end
+        handles.dis_num = dis_num;
+        handles.dis_den = dis_den;
+        assignin('base', 'num', dis_num);
+        assignin('base', 'den', dis_den);
+        set(handles.dis_num_edit, 'String', num2str(handles.dis_num));
+        set(handles.dis_den_edit, 'String', num2str(handles.dis_den));
+    catch
+    end
+end
+    
+
 % Update handles structure
 guidata(hObject, handles);
 
@@ -338,8 +365,30 @@ while temp(1) == 0
     temp = temp(2:end);
 end
 % Save computed values to variable and to workspace
-handles.den = temp;
-assignin('base', 'den', handles.den);
+handles.con_den = temp;
+
+if ~isempty(handles.con_num)
+    try
+        tf_con = tf(handles.con_num, handles.con_den);
+        tf_dis = c2d(tf_con, handles.sampleTime);
+        [dis_num, dis_den] = tfdata(tf_dis);
+        dis_num = dis_num{1};
+        dis_den = dis_den{1};
+        while dis_num(1) == 0
+            dis_num = dis_num(2:end);
+        end
+        while dis_den(1) == 0
+            dis_den = dis_den(2:end);
+        end
+        handles.dis_num = dis_num;
+        handles.dis_den = dis_den;
+        assignin('base', 'num', dis_num);
+        assignin('base', 'den', dis_den);
+        set(handles.dis_num_edit, 'String', num2str(handles.dis_num));
+        set(handles.dis_den_edit, 'String', num2str(handles.dis_den));
+    catch
+    end
+end
 % Update handles structure
 guidata(hObject, handles);
 
@@ -582,8 +631,8 @@ function generate_button_Callback(hObject, eventdata, handles)
 % Return error if numerator of transfer function has more elements than
 % denominator (or the same number) - no computations will be done unless
 % transfer function is corrected
-if length(handles.den) <= length(handles.num)
-    msgbox('Numerator of transfer function has to have less elements than denominator.');
+if length(handles.con_den) <= length(handles.con_num) || isempty(handles.con_den) || isempty(handles.con_num)
+    msgbox('Numerator of transfer function has to have less elements than denominator and they cannot be empty.');
 else
     % Simulate generate_model.slx model with duration set in 'duration'
     % cell
@@ -605,7 +654,8 @@ else
     axes(handles.axes1);
     % Plot control
     if get(handles.plot_control_checkbox, 'Value') == 1
-        plot(handles.time, handles.u, 'b');
+%         plot(handles.time, handles.u, 'b');
+        stairs(handles.time, handles.u, 'b');
         if get(handles.plot_response_checkbox, 'Value') == 1
             hold on;
         else
@@ -615,7 +665,8 @@ else
     end
     % Plot response
     if get(handles.plot_response_checkbox, 'Value') == 1
-        plot(handles.time, handles.y, 'r');
+%         plot(handles.time, handles.y, 'r');
+        stairs(handles.time, handles.y, 'r');
         grid on;
         hold off;
     end
@@ -659,12 +710,13 @@ function save_button_Callback(hObject, eventdata, handles)
 
 % Return error it number of elements in numerator is greater or the same as
 % in denominator vector
-if length(handles.den) <= length(handles.num)
+if length(handles.con_den) <= length(handles.con_num) || isempty(handles.con_den) || isempty(handles.con_num)
     msgbox('Numerator of transfer function has to have less elements than denominator.');
 else
     % Save transfer function to *_tf.mat file - it will be needed to
     % compare results with reference characteristics computed by MATLAB
-    transfer_fun = tf(handles.num, handles.den);
+    transfer_fun = tf(handles.con_num, handles.con_den);
+    transfer_fun = c2d(transfer_fun,handles.sampleTime);
     tfName = [handles.name '_tf.mat'];
     save(tfName, 'transfer_fun');
     
@@ -693,7 +745,8 @@ else
     axes(handles.axes1);
     % Plot control
     if get(handles.plot_control_checkbox, 'Value') == 1
-        plot(handles.time, handles.u, 'b');
+%         plot(handles.time, handles.u, 'b');
+        stairs(handles.time, handles.u, 'b');
         if get(handles.plot_response_checkbox, 'Value') == 1
             hold on;
         else
@@ -703,7 +756,8 @@ else
     end
     % Plot response
     if get(handles.plot_response_checkbox, 'Value') == 1
-        plot(handles.time, handles.y, 'r');
+%         plot(handles.time, handles.y, 'r');
+        stairs(handles.time, handles.y, 'r');
         grid on;
         hold off;
     end
@@ -980,3 +1034,77 @@ function plot_response_checkbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of plot_response_checkbox
+
+
+
+function dis_num_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to dis_num_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of dis_num_edit as text
+%        str2double(get(hObject,'String')) returns contents of dis_num_edit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function dis_num_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to dis_num_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function dis_den_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to dis_den_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of dis_den_edit as text
+%        str2double(get(hObject,'String')) returns contents of dis_den_edit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function dis_den_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to dis_den_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function max_ramp_edit_Callback(hObject, eventdata, handles)
+% hObject    handle to max_ramp_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of max_ramp_edit as text
+%        str2double(get(hObject,'String')) returns contents of max_ramp_edit as a double
+
+% Save value of slope (ramp) to workspace changing it from string to number
+assignin('base', 'max_ramp', str2double(get(handles.max_ramp_edit, 'String')));
+% Update handles structure
+guidata(hObject, handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function max_ramp_edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to max_ramp_edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
