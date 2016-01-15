@@ -140,7 +140,7 @@ set(handles.a_noise_edit, 'Enable', 'off');
 % Set initial values of different types of control
 % Step - value
 assignin('base', 'A_step', 1);
-% Ramp - slope
+% Ramp - slope and max value
 assignin('base', 'slope_ramp', 0.1);
 assignin('base', 'max_ramp', 1);
 % Sine - amplitude and frequency
@@ -299,10 +299,13 @@ end
 % Set num parameter and save it to workspace
 handles.con_num = temp;
 
+% Calculate discrete transfer function if denominator is not empty
+% (transfer function can be calculated)
 if ~isempty(handles.con_den)
     try
         tf_con = tf(handles.con_num, handles.con_den);
         tf_dis = c2d(tf_con, handles.sampleTime);
+        % Extract numerator and denominator of discrete transfer function
         [dis_num, dis_den] = tfdata(tf_dis);
         dis_num = dis_num{1};
         dis_den = dis_den{1};
@@ -314,6 +317,7 @@ if ~isempty(handles.con_den)
         end
         handles.dis_num = dis_num;
         handles.dis_den = dis_den;
+        % Save in workspace and GUI
         assignin('base', 'num', dis_num);
         assignin('base', 'den', dis_den);
         set(handles.dis_num_edit, 'String', num2str(handles.dis_num));
@@ -367,10 +371,13 @@ end
 % Save computed values to variable and to workspace
 handles.con_den = temp;
 
+% Calculate discrete transfer function if denominator is not empty
+% (transfer function can be calculated)
 if ~isempty(handles.con_num)
     try
         tf_con = tf(handles.con_num, handles.con_den);
         tf_dis = c2d(tf_con, handles.sampleTime);
+        % Extract numerator and denominator of discrete transfer function
         [dis_num, dis_den] = tfdata(tf_dis);
         dis_num = dis_num{1};
         dis_den = dis_den{1};
@@ -380,6 +387,7 @@ if ~isempty(handles.con_num)
         while dis_den(1) == 0
             dis_den = dis_den(2:end);
         end
+        % Save in workspace and GUI
         handles.dis_num = dis_num;
         handles.dis_den = dis_den;
         assignin('base', 'num', dis_num);
@@ -654,7 +662,6 @@ else
     axes(handles.axes1);
     % Plot control
     if get(handles.plot_control_checkbox, 'Value') == 1
-%         plot(handles.time, handles.u, 'b');
         stairs(handles.time, handles.u, 'b');
         if get(handles.plot_response_checkbox, 'Value') == 1
             hold on;
@@ -665,7 +672,6 @@ else
     end
     % Plot response
     if get(handles.plot_response_checkbox, 'Value') == 1
-%         plot(handles.time, handles.y, 'r');
         stairs(handles.time, handles.y, 'r');
         grid on;
         hold off;
@@ -745,7 +751,6 @@ else
     axes(handles.axes1);
     % Plot control
     if get(handles.plot_control_checkbox, 'Value') == 1
-%         plot(handles.time, handles.u, 'b');
         stairs(handles.time, handles.u, 'b');
         if get(handles.plot_response_checkbox, 'Value') == 1
             hold on;
@@ -756,7 +761,6 @@ else
     end
     % Plot response
     if get(handles.plot_response_checkbox, 'Value') == 1
-%         plot(handles.time, handles.y, 'r');
         stairs(handles.time, handles.y, 'r');
         grid on;
         hold off;
@@ -986,7 +990,7 @@ end
 
 % Run program that computes impulse and step responses - it will write
 % results to *_response.txt file
-system(['adaptacja.exe ' pathName]);
+system(['responses.exe ' pathName]);
 
 % Display message about finishing coputation
 msgbox(['Computation done and saved to file ''' strrep(fileName, '_data', '_response') '''']);

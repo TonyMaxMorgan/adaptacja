@@ -333,6 +333,7 @@ xlabel('t');
 ylabel('y');
 grid on
 
+% Calculate preformance index
 handles.error_sum_impulse = sum(handles.error_impulse.^2);
 handles.error_sum_step = sum(handles.error_step.^2);
 
