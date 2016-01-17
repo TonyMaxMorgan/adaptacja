@@ -57,11 +57,9 @@ int main(int argc, char* argv[])
 	if (argc > 1)
 	{
 	input_location = argv[1];
-	cout<<input_location<<endl;
 	output_location = input_location;
 	output_location.erase(output_location.end()-9,output_location.end());
 	output_location.append("_response.txt");
-	cout<<output_location<<endl;
 	}
 	else
 	{
